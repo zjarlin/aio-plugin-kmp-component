@@ -3,6 +3,12 @@ kind = "wasm-component"
 artifact = "dist/plugin.wasm"
 host_version = ">=2026.9.9"
 
+[plugin.marketplace]
+title = "Kotlin Multiplatform Wasm Component"
+summary = "使用 Kotlin Toolchain 构建并在 Wasmtime 中按租户运行的动态页面和服务。"
+license = "MIT"
+tags = ["example", "kotlin", "kmp", "wasm-component", "full-stack"]
+
 [plugin.capabilities]
 network = []
 filesystem = []
