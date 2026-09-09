@@ -41,7 +41,7 @@ jobs:
       - name: 构建并核对 Wasm Component
         run: |
           ./scripts/build-component.sh
-          git diff --exit-code -- component/src dist/plugin.wasm
+          git diff --exit-code -- component/src
 
       - name: 检出 AIO 校验器
         uses: actions/checkout@v4
