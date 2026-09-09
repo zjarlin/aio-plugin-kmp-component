@@ -1,0 +1,68 @@
+name: Verify plugin
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: 安装固定的 Component 工具链
+        run: |
+          cargo install --locked --git https://github.com/JetBrains/wit-bindgen.git --rev 700f2db5e1d01f7bee8d756750c6f631171f520e wit-bindgen-cli
+          cargo install --locked wasm-tools --version 1.240.0
+
+      - name: 核对 WIT 生成绑定
+        run: ./scripts/generate-bindings.sh --check
+
+      - name: 构建和测试 KMP 模型
+        env:
+          KOTLIN_CLI_NO_WELCOME_BANNER: "1"
+        run: |
+          ./kotlin build -m model -p jvm -p wasmJs -p wasmWasi
+          ./kotlin test -m model -p jvm
+
+      - name: 构建并核对 Wasm Component
+        run: |
+          ./scripts/build-component.sh
+          git diff --exit-code -- component/src dist/plugin.wasm
+
+      - name: 检出 AIO 校验器
+        uses: actions/checkout@v4
+        with:
+          repository: zjarlin/aio
+          ref: 47a6ce9e364e7d33c819dfb8036a21e9b03fd026
+          path: aio-host-source
+          submodules: recursive
+
+      - name: 验证 AIO 插件协议
+        run: cargo +nightly run --manifest-path aio-host-source/Cargo.toml --bin aio -- plugin validate "$GITHUB_WORKSPACE"
+
+      - name: 检出 Wasmtime 运行时宿主
+        uses: actions/checkout@v4
+        with:
+          repository: zjarlin/aio-public-shell
+          ref: 0f293e7eff37bb8d215c8fcdc92e4476d617140a
+          path: aio-public-shell
+
+      - name: 验证 KMP Component 租户隔离
+        env:
+          AIO_TEST_WASM_COMPONENT: ${{ github.workspace }}/dist/plugin.wasm
+        working-directory: aio-public-shell
+        run: cargo test --no-default-features --features server activates_reuses_and_destroys_tenant_instances -- --ignored

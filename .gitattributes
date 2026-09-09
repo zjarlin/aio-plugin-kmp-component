@@ -1,0 +1,3 @@
+kotlin.bat text eol=crlf
+component/src/**/bindings/*.kt whitespace=-blank-at-eof
+component/src/**/bindings/**/*.kt whitespace=-blank-at-eof
