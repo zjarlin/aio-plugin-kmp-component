@@ -25,7 +25,7 @@ jobs:
 
       - name: 安装固定的 Component 工具链
         run: |
-          cargo install --locked --git https://github.com/JetBrains/wit-bindgen.git --rev 700f2db5e1d01f7bee8d756750c6f631171f520e wit-bindgen-cli
+          cargo install --locked --git https://github.com/Kotlin/wit-bindgen.git --rev 700f2db5e1d01f7bee8d756750c6f631171f520e wit-bindgen-cli
           cargo install --locked wasm-tools --version 1.240.0
 
       - name: 核对 WIT 生成绑定
